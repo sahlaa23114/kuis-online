@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kuis Online</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        body {
+            background-color: #f0f2f5;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background-color: white;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 600px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #1a73e8;
+            margin-bottom: 30px;
+        }
+
+        .topic-selection, .quiz-container, .result-container {
+            display: none;
+        }
+
+        .active {
+            display: block;
+        }
+
+        .topic-btn {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            margin: 10px 0;
+            border: none;
+            border-radius: 8px;
+            background-color: #e8f0fe;
+            color: #1a73e8;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .topic-btn:hover {
+            background-color: #1a73e8;
+            color: white;
+        }
+
+        .option {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            margin: 10px 0;
+            border: 2px solid #e8f0fe;
+            border-radius: 8px;
+            background-color: white;
+            color: #333;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .option:hover {
+            background-color: #f8f9fa;
+        }
+
+        .option.selected {
+            background-color: #e8f0fe;
+            border-color: #1a73e8;
+            color: #1a73e8;
+        }
+
+        .option.correct {
+            background-color: #d4edda;
+            border-color: #28a745;
+            color: #155724;
+        }
+
+        .option.wrong {
+            background-color: #f8d7da;
+            border-color: #dc3545;
+            color: #721c24;
+        }
+
+        .button-container {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+
+        .nav-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .back-btn {
+            background-color: #6c757d;
+            color: white;
+        }
+
+        .skip-btn {
+            background-color: #ffc107;
+            color: #000;
+        }
+
+        .next-btn {
+            background-color: #28a745;
+            color: white;
+        }
+
+        .result-container {
+            text-align: center;
+        }
+
+        .score {
+            font-size: 24px;
+            margin: 20px 0;
+            color: #1a73e8;
+        }
+
+        .action-btn {
+            display: inline-block;
+            padding: 10px 20px;
+            margin: 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .review-btn {
+            background-color: #17a2b8;
+            color: white;
+        }
+
+        .retry-btn, .switch-btn {
+            background-color: #28a745;
+            color: white;
+        }
+
+        .switch-btn {
+            background-color: #007bff;
+        }
+
+        .question {
+            margin-bottom: 20px;
+            font-size: 18px;
+            color: #333;
+        }
+
+        .progress {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #6c757d;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Kuis HTML, CSS, dan Javascript</h1>
+        
+        <div class="topic-selection active">
+            <button class="topic-btn" data-topic="html">HTML</button>
+            <button class="topic-btn" data-topic="css">CSS</button>
+            <button class="topic-btn" data-topic="javascript">JavaScript</button>
+        </div>
+
+        <div class="quiz-container">
+            <div class="progress">Pertanyaan <span id="current-question">1</span> dari <span id="total-questions">5</span></div>
+            <div class="question" id="question-text"></div>
+            <div id="options-container"></div>
+            <div class="button-container">
+                <button class="nav-btn back-btn">Kembali</button>
+                <button class="nav-btn skip-btn">Lewati</button>
+                <button class="nav-btn next-btn">Selanjutnya</button>
+            </div>
+        </div>
+
+        <div class="result-container">
+            <div class="score" id="score-container">Nilai Kamu: <span id="score">0</span>%</div>
+            <button class="action-btn review-btn">Hasil Jawaban</button>
+            <button class="action-btn retry-btn">Ulangi Kuis</button>
+            <button class="action-btn switch-btn">Ganti Topik</button>
+        </div>
+    </div>
+
+    <script>
+        const quizData = {
+            html: [
+                { question: "Apa kepanjangan dari HTML?", options: ["Hyper Text Markup Language", "High Tech Modern Language", "Hyperlink and Text Markup Language", "Home Tool Markup Language"], correct: 0 },
+                { question: "Tag mana yang digunakan untuk membuat paragraf dalam HTML?", options: ["<paragraph>", "<p>", "<para>", "<text>"], correct: 1 },
+                { question: "Tag HTML mana yang digunakan untuk mendefinisikan style sheet internal?", options: ["<css>", "<script>", "<style>", "<link>"], correct: 2 },
+                { question: "Atribut HTML mana yang digunakan untuk menentukan gaya sebaris?", options: ["styles", "style", "class", "font"], correct: 1 },
+                { question: "Elemen HTML mana yang digunakan untuk menentukan header dokumen atau bagian?", options: ["<head>", "<header>", "<top>", "<heading>"], correct: 1 }
+            ],
+            css: [
+                { question: "Apa kepanjangan dari CSS?", options: ["Creative Style Sheets", "Computer Style Sheets", "Cascading Style Sheets", "Colorful Style Sheets"], correct: 2 },
+                { question: "Properti mana yang digunakan untuk mengubah warna latar belakang?", options: ["color", "bgcolor", "background-color", "background"], correct: 2 },
+                { question: "Bagaimana Anda memilih elemen dengan id 'demo'?", options: ["#demo", ".demo", "*demo", "demo"], correct: 0 },
+                { question: "Properti mana yang digunakan untuk mengubah font suatu elemen?", options: ["font-style", "text-style", "font-family", "text-family"], correct: 2 },
+                { question: "Properti CSS mana yang mengontrol ukuran teks?", options: ["text-size", "font-size", "text-style", "font-style"], correct: 1 }
+            ],
+            javascript: [
+                { question: "Operator mana yang digunakan untuk memberikan nilai pada suatu variabel?", options: ["*", "-", "=", "x"], correct: 2 },
+                { question: "Apa output yang akan '2' + 2 tampilkan dalam JavaScript?", options: ["4", "22", "undefined", "error"], correct: 1 },
+                { question: "Cara yang digunakan untuk membulatkan suatu bilangan ke bilangan bulat terdekat?", options: ["Math.round()", "round()", "Math.floor()", "ceil()"], correct: 0 },
+                { question: "Bagaimana Anda mendeklarasikan variabel JavaScript?", options: ["variable name", "v name", "var name", "name var"], correct: 2 },
+                { question: "Peristiwa mana yang terjadi ketika pengguna mengklik elemen HTML?", options: ["onmouseclick", "onclick", "onmouseover", "onchange"], correct: 1 }
+            ]
+        };
+
+        let currentTopic = '';
+        let currentQuestions = [];
+        let currentQuestionIndex = 0;
+        let selectedOptions = [];
+        let isReviewMode = false;
+
+        document.querySelectorAll('.topic-btn').forEach(button => {
+            button.addEventListener('click', () => startQuiz(button.getAttribute('data-topic')));
+        });
+
+        document.querySelector('.next-btn').addEventListener('click', nextQuestion);
+        document.querySelector('.back-btn').addEventListener('click', previousQuestion);
+        document.querySelector('.skip-btn').addEventListener('click', skipQuestion);
+        document.querySelector('.review-btn').addEventListener('click', showReview);
+        document.querySelector('.retry-btn').addEventListener('click', retryQuiz);
+        document.querySelector('.switch-btn').addEventListener('click', switchTopic);
+
+        function startQuiz(topic) {
+            currentTopic = topic;
+            currentQuestions = quizData[topic];
+            currentQuestionIndex = 0;
+            selectedOptions = new Array(currentQuestions.length).fill(null);
+            isReviewMode = false;
+            document.querySelector('.topic-selection').classList.remove('active');
+            document.querySelector('.quiz-container').classList.add('active');
+            document.querySelector('.skip-btn').style.display = 'inline-block'; 
+            document.getElementById('score-container').style.display = 'none'; 
+            document.querySelector('.review-btn').style.display = 'none';
+            document.querySelector('.retry-btn').style.display = 'none';
+            document.querySelector('.switch-btn').style.display = 'none';
+            document.getElementById('total-questions').textContent = currentQuestions.length;
+            displayQuestion();
+        }
+
+        function displayQuestion() {
+            const questionData = currentQuestions[currentQuestionIndex];
+            document.getElementById('question-text').textContent = questionData.question;
+            document.getElementById('current-question').textContent = currentQuestionIndex + 1;
+            const optionsContainer = document.getElementById('options-container');
+            optionsContainer.innerHTML = '';
+
+            questionData.options.forEach((option, index) => {
+                const optionButton = document.createElement('button');
+                optionButton.textContent = option;
+                optionButton.classList.add('option');
+
+                if (isReviewMode) {
+                    if (index === questionData.correct) optionButton.classList.add('correct');
+                    if (selectedOptions[currentQuestionIndex] === index && index !== questionData.correct) optionButton.classList.add('wrong');
+                } else {
+                    if (selectedOptions[currentQuestionIndex] === index) optionButton.classList.add('selected');
+                }
+
+                optionButton.addEventListener('click', () => selectOption(index));
+                optionsContainer.appendChild(optionButton);
+            });
+        }
+
+        function selectOption(index) {
+            selectedOptions[currentQuestionIndex] = index;
+            document.querySelectorAll('.option').forEach((option, idx) => {
+                option.classList.toggle('selected', idx === index);
+            });
+        }
+
+        function nextQuestion() {
+            if (currentQuestionIndex < currentQuestions.length - 1) {
+                currentQuestionIndex++;
+                displayQuestion();
+            } else {
+                showResults();
+            }
+        }
+
+        function previousQuestion() {
+            if (currentQuestionIndex > 0) {
+                currentQuestionIndex--;
+                displayQuestion();
+            }
+        }
+
+        function skipQuestion() {
+            if (currentQuestionIndex < currentQuestions.length - 1) {
+                currentQuestionIndex++;
+                displayQuestion();
+            } else {
+                showResults();
+            }
+        }
+
+        function showResults() {
+            document.querySelector('.skip-btn').style.display = 'none'; 
+            const correctAnswers = selectedOptions.reduce((acc, selected, index) => {
+                if (selected !== null && selected === currentQuestions[index].correct) {
+                    return acc + 1;
+                }
+                return acc;
+            }, 0);
+
+            const percentage = Math.round((correctAnswers / currentQuestions.length) * 100);
+            document.getElementById('score').textContent = percentage;
+            document.getElementById('score-container').style.display = 'block';
+            document.querySelector('.review-btn').style.display = 'inline-block';
+            document.querySelector('.retry-btn').style.display = 'inline-block';
+            document.querySelector('.switch-btn').style.display = 'inline-block';
+
+            document.querySelector('.quiz-container').classList.remove('active');
+            document.querySelector('.result-container').classList.add('active');
+        }
+
+        function showReview() {
+            isReviewMode = true;
+            currentQuestionIndex = 0;
+            document.querySelector('.result-container').classList.remove('active');
+            document.querySelector('.quiz-container').classList.add('active');
+            displayQuestion(); 
+        }
+
+        function retryQuiz() {
+            startQuiz(currentTopic);
+        }
+
+        function switchTopic() {
+            document.querySelector('.result-container').classList.remove('active');
+            document.querySelector('.quiz-container').classList.remove('active');
+            document.querySelector('.topic-selection').classList.add('active');
+        }
+    </script>
+</body>
+</html>
